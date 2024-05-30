@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "fastApi-HTTP",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
