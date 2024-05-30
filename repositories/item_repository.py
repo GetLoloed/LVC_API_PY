@@ -3,7 +3,7 @@ from models.item_model import Item
 
 
 class ItemRepository:
-    def init(self, db: Session):
+    def __init__(self, db: Session):
         self.db = db
 
     def get_all(self):
