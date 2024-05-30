@@ -1,1 +1,12 @@
-# TODO Faire le model de l'item
+from sqlalchemy import Column, Integer, String, Float, Boolean
+from db.database import Base
+
+
+class Item(Base):
+    tablename = "items"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name = Column(String, index=True)
+    description = Column(String, index=True)
+    price = Column(Float)
+    is_available = Column(Boolean, default=True)
