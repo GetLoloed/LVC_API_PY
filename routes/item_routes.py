@@ -63,40 +63,4 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
     return {"message": "Item deleted"}
 
 
-class ItemRepository:
-    def __init__(self, db: Session):
-        self.db = db  # initialiser la session de base de données
 
-    # Méthode pour obtenir tous les articles, avec pagination
-    def get_all(self, skip: int = 0, limit: int = 10):
-        return self.db.query(Item).offset(skip).limit(limit).all()
-
-    # Méthode pour créer un nouvel article
-    def create(self, item: Item) -> Item:
-        self.db.add(item)  # ajouter l'article à la base de données
-        self.db.commit()  # confirmer la transaction
-        self.db.refresh(item)  # rafraichir l'article avec les données actuelles de la base de données
-        return item  # renvoyer l'article créé
-
-    # Méthode pour lire (obtenir) un article par son identifiant
-    def read(self, item_id: int) -> Item:
-        return self.db.query(Item).filter(Item.id == item_id).first()
-
-    # Méthode pour mettre à jour un article existant
-    def update(self, item: Item) -> Item:
-        db_item = self.db.query(Item).filter(Item.id == item.id).first()
-        if db_item:
-            db_item.name = item.name
-            db_item.description = item.description
-            db_item.price = item.price
-            db_item.is_available = item.is_available
-            self.db.commit()  # confirmer la transaction
-            self.db.refresh(db_item)  # rafraichir l'article avec les données actuelles de la base de données
-            return db_item  # renvoyer l'article mis à jour
-
-    # Méthode pour supprimer un article
-    def delete(self, item_id: int) -> None:
-        item = self.db.query(Item).filter(Item.id == item_id).first()
-        if item:
-            self.db.delete(item)  # supprimer l'élément de la base de données
-            self.db.commit()  # confirmer la transaction
