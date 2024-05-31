@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     steps:
@@ -37,7 +38,7 @@ jobs:
         pytest
 
     - name: Connect to VPN
-      uses: golfzaptw/action-connect-ovpn@master
+      uses: kha7iq/connect-vpn-action@v1
       with:
         config: .github/workflows/client.ovpn
         username: ${{ secrets.VPN_USERNAME }}
