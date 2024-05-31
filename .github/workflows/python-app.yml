@@ -11,7 +11,6 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -74,8 +73,8 @@ jobs:
 
     - name: Deploy to server
       run: |
-        ssh -o StrictHostKeyChecking=no alt@10.17.10.4 "mkdir -p /home/alt/tp_api"
-        scp -r ./tp_api/* alt@10.17.10.4:/home/alt/tp_api/
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "mkdir -p /home/alt/tp_api"
+        scp -r ./tp_api/* ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/home/alt/tp_api/
       env:
         SSH_PASS: ${{ secrets.SERVER_PASSWORD }}
 
