@@ -1,6 +1,3 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
 name: Python application
 
 on:
@@ -33,9 +30,7 @@ jobs:
 
     - name: Lint with flake8
       run: |
-        # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Test with pytest
@@ -51,33 +46,23 @@ jobs:
       run: |
         echo "${{ secrets.VPN_CONFIG }}" > vpn-config.ovpn
         echo "${{ secrets.SERVER_PASSWORD }}" > vpn-password.txt
-        sudo openvpn --config vpn-config.ovpn --auth-user-pass vpn-password.txt --verb 3 --daemon
+        sudo openvpn --config vpn-config.ovpn --auth-user-pass vpn-password.txt --daemon
         sleep 20
-        sudo pkill -f openvpn
-        sudo openvpn --config vpn-config.ovpn --auth-user-pass vpn-password.txt --verb 3 --daemon
-      env:
-        VPN_CONFIG: ${{ secrets.VPN_CONFIG }}
-
-    - name: Check VPN connection
-      run: |
-        ip a
-        sudo tail -n 100 /var/log/syslog
-
-    - name: Wait for VPN connection
-      run: sleep 20
 
     - name: Verify VPN connection
       run: |
         ip a
-        sudo journalctl -u openvpn
+        sudo tail -n 100 /var/log/syslog
 
-    - name: Install sshpass
-      run: sudo apt-get install -y sshpass
+    - name: Install SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
     - name: Deploy to server
-      env:
-        SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
       run: |
-        mkdir -p ~/.ssh
-        ssh-keyscan -H 10.17.10.4 >> ~/.ssh/known_hosts
-        sshpass -p "$SERVER_PASSWORD" scp -o StrictHostKeyChecking=no -r ./tp_api alt@10.17.10.4:/home/alt/tp_api/
+        ssh alt@10.17.10.4 "mkdir -p /home/alt/tp_api"
+        scp -r ./tp_api/* alt@10.17.10.4:/home/alt/tp_api/
+      env:
+        SSH_PASS: ${{ secrets.SERVER_PASSWORD }}
