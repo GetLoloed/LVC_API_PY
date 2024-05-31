@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Mettre à jour le système
+sudo apt-get update -y && sudo apt-get upgrade -y
+
+# Installer python3, pip et venv
+sudo apt-get install -y python3 python3-pip python3-venv git
+
+
 # Créer un environnement virtuel
 python3 -m venv env
 
