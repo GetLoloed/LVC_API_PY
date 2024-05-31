@@ -37,12 +37,11 @@ jobs:
         pytest
 
     - name: Connect to VPN
-      uses: kota65535/github-openvpn-connect-action@v2
+      uses: golfzaptw/action-connect-ovpn@master
       with:
-        config_file: .github/workflows/client.ovpn
+        config: .github/workflows/client.ovpn
         username: ${{ secrets.VPN_USERNAME }}
         password: ${{ secrets.VPN_PASSWORD }}
-        client_key: ${{ secrets.USER_KEY }}
 
     - name: Verify VPN connection
       run: |
