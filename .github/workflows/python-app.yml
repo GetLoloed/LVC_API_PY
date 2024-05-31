@@ -42,17 +42,29 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y openvpn
 
+    - name: Verify Secrets
+      run: |
+        echo "VPN_CONFIG length: ${#${{ secrets.VPN_CONFIG }}}"
+        echo "SERVER_PASSWORD length: ${#${{ secrets.SERVER_PASSWORD }}}"
+
     - name: Setup VPN
       run: |
         echo "${{ secrets.VPN_CONFIG }}" > vpn-config.ovpn
         echo "${{ secrets.SERVER_PASSWORD }}" > vpn-password.txt
         sudo openvpn --config vpn-config.ovpn --auth-user-pass vpn-password.txt --daemon
         sleep 20
+      shell: /usr/bin/bash -e {0}
+
+    - name: Debug VPN Config
+      run: cat vpn-config.ovpn
 
     - name: Verify VPN connection
       run: |
         ip a
         sudo tail -n 100 /var/log/syslog
+
+    - name: Check OpenVPN Logs
+      run: sudo tail -n 100 /var/log/openvpn.log
 
     - name: Install SSH key
       uses: shimataro/ssh-key-action@v2
