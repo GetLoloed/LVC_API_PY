@@ -55,7 +55,7 @@
 </div>
 
 <script>
-    fetch('/items')
+    fetch('127.0.0.1/items')
         .then(response => response.json())
         .then(data => {
             const tableBody = document.querySelector('#data-table tbody');
