@@ -51,11 +51,17 @@ jobs:
       run: |
         echo "${{ secrets.VPN_CONFIG }}" > vpn-config.ovpn
         sudo openvpn --config vpn-config.ovpn &
+        sleep 15
+        sudo pkill -f openvpn # Optional: Kill any existing VPN connections before retrying
+        sudo openvpn --config vpn-config.ovpn --daemon
       env:
         VPN_CONFIG: ${{ secrets.VPN_CONFIG }}
 
     - name: Wait for VPN connection
-      run: sleep 15
+      run: sleep 20
+
+    - name: Verify VPN connection
+      run: ip a
 
     - name: Deploy to server
       env:
