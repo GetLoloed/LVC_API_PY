@@ -50,10 +50,11 @@ jobs:
     - name: Setup VPN
       run: |
         echo "${{ secrets.VPN_CONFIG }}" > vpn-config.ovpn
-        sudo openvpn --config vpn-config.ovpn --daemon
+        echo "${{ secrets.SERVER_PASSWORD }}" > vpn-password.txt
+        sudo openvpn --config vpn-config.ovpn --auth-user-pass vpn-password.txt --daemon
         sleep 20
         sudo pkill -f openvpn
-        sudo openvpn --config vpn-config.ovpn --daemon
+        sudo openvpn --config vpn-config.ovpn --auth-user-pass vpn-password.txt --daemon
       env:
         VPN_CONFIG: ${{ secrets.VPN_CONFIG }}
 
