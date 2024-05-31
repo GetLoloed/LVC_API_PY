@@ -63,12 +63,13 @@ jobs:
     - name: Verify VPN connection
       run: ip a
 
+    - name: Install sshpass
+      run: sudo apt-get install -y sshpass
+
     - name: Deploy to server
       env:
-        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
       run: |
         mkdir -p ~/.ssh
-        echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H 10.17.10.4 >> ~/.ssh/known_hosts
-        scp -o StrictHostKeyChecking=no -r ./path/to/build user@10.17.10.4:/path/to/deploy
+        sshpass -p "$SERVER_PASSWORD" scp -o StrictHostKeyChecking=no -r ./tp_api alt@10.17.10.4:/home/alt/tp_api/
