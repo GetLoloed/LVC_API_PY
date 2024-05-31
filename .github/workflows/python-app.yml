@@ -14,69 +14,62 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    - name: Lint with flake8
-      run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Lint with flake8
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    - name: Test with pytest
-      run: |
-        pytest
+      - name: Test with pytest
+        run: |
+          pytest
 
-    - name: Install OpenVPN
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y openvpn
+      - name: Install OpenVPN
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openvpn
 
-    - name: Verify Secrets
-      run: |
-        echo "VPN_CONFIG length: ${#${{ secrets.VPN_CONFIG }}}"
-        echo "SERVER_PASSWORD length: ${#${{ secrets.SERVER_PASSWORD }}}"
+      - name: Setup VPN
+        run: |
+          echo "${{ secrets.VPN_CONFIG }}" > .github/workflows/client.ovpn
+          echo "${{ secrets.VPN_USERNAME }}" > vpn-username.txt
+          echo "${{ secrets.VPN_PASSWORD }}" > vpn-password.txt
+          sudo openvpn --config .github/workflows/client.ovpn --auth-user-pass vpn-username.txt vpn-password.txt --daemon
+          sleep 20
+        shell: /usr/bin/bash -e {0}
 
-    - name: Setup VPN
-      run: |
-        echo "${{ secrets.VPN_CONFIG }}" > vpn-config.ovpn
-        echo "${{ secrets.SERVER_PASSWORD }}" > vpn-password.txt
-        sudo openvpn --config vpn-config.ovpn --auth-user-pass vpn-password.txt --daemon
-        sleep 20
-      shell: /usr/bin/bash -e {0}
+      - name: Verify VPN connection
+        run: |
+          ip a
+          sudo tail -n 100 /var/log/syslog
 
-    - name: Debug VPN Config
-      run: cat vpn-config.ovpn
+      - name: Check OpenVPN Logs
+        run: sudo tail -n 100 /var/log/openvpn.log
 
-    - name: Verify VPN connection
-      run: |
-        ip a
-        sudo tail -n 100 /var/log/syslog
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
-    - name: Check OpenVPN Logs
-      run: sudo tail -n 100 /var/log/openvpn.log
-
-    - name: Install SSH key
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        known_hosts: ${{ secrets.KNOWN_HOSTS }}
-
-    - name: Deploy to server
-      run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "mkdir -p /home/alt/tp_api"
-        scp -r ./tp_api/* ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/home/alt/tp_api/
-      env:
-        SSH_PASS: ${{ secrets.SERVER_PASSWORD }}
+      - name: Deploy to server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "mkdir -p /home/alt/tp_api"
+          scp -r ./tp_api/* ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/home/alt/tp_api/
+        env:
+          SSH_PASS: ${{ secrets.SERVER_PASSWORD }}
 
     env:
       pythonLocation: /opt/hostedtoolcache/Python/3.10.14/x64
