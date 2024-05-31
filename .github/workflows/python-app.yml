@@ -11,7 +11,6 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -37,17 +36,27 @@ jobs:
       run: |
         pytest
 
-    - name: Connect to VPN
-      uses: kha7iq/connect-vpn-action@v1
-      with:
-        config: .github/workflows/client.ovpn
-        username: ${{ secrets.VPN_USERNAME }}
-        password: ${{ secrets.VPN_PASSWORD }}
+    - name: Install OpenVPN
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y openvpn
+
+    - name: Setup VPN
+      run: |
+        echo "${{ secrets.VPN_CONFIG }}" > .github/workflows/client.ovpn
+        echo "${{ secrets.VPN_USERNAME }}" > vpn-username.txt
+        echo "${{ secrets.VPN_PASSWORD }}" > vpn-password.txt
+        sudo openvpn --config .github/workflows/client.ovpn --auth-user-pass vpn-username.txt vpn-password.txt --daemon
+        sleep 20
+      shell: /usr/bin/bash -e {0}
 
     - name: Verify VPN connection
       run: |
         ip a
         sudo tail -n 100 /var/log/syslog
+
+    - name: Check OpenVPN Logs
+      run: sudo tail -n 100 /var/log/openvpn.log
 
     - name: Install SSH key
       uses: shimataro/ssh-key-action@v2
@@ -65,6 +74,5 @@ jobs:
     env:
       pythonLocation: /opt/hostedtoolcache/Python/3.10.14/x64
       LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.10.14/x64/lib
-      VPN_USERNAME: ${{ secrets.VPN_USERNAME }}
-      VPN_PASSWORD: ${{ secrets.VPN_PASSWORD }}
+      VPN_CONFIG: ${{ secrets.VPN_CONFIG }}
       SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
