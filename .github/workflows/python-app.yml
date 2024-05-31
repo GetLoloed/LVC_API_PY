@@ -50,9 +50,9 @@ jobs:
     - name: Setup VPN
       run: |
         echo "${{ secrets.VPN_CONFIG }}" > vpn-config.ovpn
-        sudo openvpn --config vpn-config.ovpn &
-        sleep 15
-        sudo pkill -f openvpn # Optional: Kill any existing VPN connections before retrying
+        sudo openvpn --config vpn-config.ovpn --daemon
+        sleep 20
+        sudo pkill -f openvpn
         sudo openvpn --config vpn-config.ovpn --daemon
       env:
         VPN_CONFIG: ${{ secrets.VPN_CONFIG }}
@@ -61,7 +61,9 @@ jobs:
       run: sleep 20
 
     - name: Verify VPN connection
-      run: ip a
+      run: |
+        ip a
+        sudo journalctl -u openvpn
 
     - name: Install sshpass
       run: sudo apt-get install -y sshpass
